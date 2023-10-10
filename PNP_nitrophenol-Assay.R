@@ -20,10 +20,10 @@ zero_data <- function(data) {
 }
 
 ##Import Data
-raw1 <- read_excel('/Users/hp/Library/CloudStorage/OneDrive-UniversityofTennessee/Dillon/1 Current Projects/1 Bacterial IPPDMAPP Paper/PNP Esterase Experments/DPM-F-53_PNP-LiveCellAssay_ecoli_16Aug2023.xlsx', 
+raw1 <- read_excel('', 
                    col_names = TRUE,
-                   skip = 1)
-setwd('/Users/hp/Library/CloudStorage/OneDrive-UniversityofTennessee/Dillon/1 Current Projects/1 Bacterial IPPDMAPP Paper/PNP Esterase Experments/Coded Figures')
+                   skip = 1)# File path of data
+setwd('') #Set working directory to send files
 
 ##Name Triplicates
 ##    Use shift+command+c to # out any unused code
@@ -240,5 +240,5 @@ ggplot(timepoint10h, mapping = aes(x=concentration, y=mean, label = round(mean, 
   labs(x='Concentration (µM)', y='OD 600 nm @ 8 h', aes(size=5))+
   theme_classic()
   
-ggsave('DPM-F-49_Bsubtilis_hexanolic-acid_DXR-DXRonly-inhibitor_17July2023_DoseResponse-Curve.pdf', width = 6, height = 4)
-ggsave('DPM-F-49_Bsubtilis_hexanolic-acid_DXR-DXRonly-inhibitor_17July2023_DoseResponse-Curve.png', width = 6, height = 4)
+ggsave('', width = 6, height = 4)
+ggsave('', width = 6, height = 4)

@@ -68,3 +68,14 @@ Quantative_Analysis_Code_Masshunter <- This script is designed to process, analy
   6.5	Piv	12	287.069				435.0979	4.029	6798	2444
   7.5	Piv	12	287.069				435.0979	4.029	22043	7916
   6.5	Piv	12	287.069				435.0979	4.022	7291	2402
+  
+PNP_nitrophenol_Assay <- Processes an Excel data file containg absorbace values, processes   triplicate readings, and then generates growth curve plots with options for visualizing the  data in different ways.
+
+  Data Import:
+  Replace the placeholder '' in the read_excel function with the path to your Excel data      file.
+  Set the working directory where output files will be saved using the setwd function.
+  
+  Customization:
+  Update triplicate_names to represent the names/labels of your triplicates.
+  Choose a color palette by adjusting the palette_names variable.
+  If necessary, adjust the data extraction and visualization functions for specific needs.
