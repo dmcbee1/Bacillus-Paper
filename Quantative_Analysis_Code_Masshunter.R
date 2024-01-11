@@ -3,15 +3,15 @@ library(dplyr)
 library(ggplot2)
 library(openxlsx)
 # Importing the dataset without headers and skipping the first row
-data <- read.csv("/Users/dmcbee/Library/CloudStorage/OneDrive-UniversityofTennessee/Dillon/1 Current Projects/1 Bacterial IPPDMAPP Paper/LCMS/DPM_Subtilis_Piv_Cleavage.csv", header = FALSE, skip = 1, stringsAsFactors = FALSE)
+data <- read.csv("PathNameOfCSVhere.csv", header = FALSE, skip = 1, stringsAsFactors = FALSE)
 
 # Adjust the number of names based on the number of columns in your data frames
 new_column_names <- c("Notebook Page", "Bacteria", "Replicate", "Sidechain",
                       "Type", "Time", "Date and Time", "mz", "rt","area", "height")
 
 #Export path for the csv File
-path <- '/Users/dmcbee/Library/CloudStorage/OneDrive-UniversityofTennessee/Dillon/1 Current Projects/1 Bacterial IPPDMAPP Paper/LCMS/MassHunter_Post_Code_Workup/'
-csv_name <- 'DPM-F-63_Piv-Cleavage.xlsx'
+path <- 'PathNameHere'
+csv_name <- 'NameExportedCSV.xlsx'
 
 # Setting the second row as headers
 colnames(data) <- as.character(unlist(data[1,]))
