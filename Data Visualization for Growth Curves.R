@@ -10,11 +10,11 @@ library(openxlsx)
 library(viridis)
 
 ##Enter in working directory and Dataset location
-dataset1 <-'/Users/dmcbee/Library/CloudStorage/OneDrive-UniversityofTennessee/Dillon/1 Current Projects/1 Bacterial IPPDMAPP Paper/Growth Curves/DPM-L-1_Hex-Alk_subtilis_Tox-Test_12920203.xls'
+dataset1 <-'PathNameOfCSVhere.xlsx'
 sheet_name <- 'Plate 1 - Sheet1'
-names1 <- '/Users/dmcbee/Library/CloudStorage/OneDrive-UniversityofTennessee/Dillon/1 Current Projects/1 Bacterial IPPDMAPP Paper/Growth Curves/Name_Template.xlsx'
-new_folder_name <- 'DPM-L-1_Hex-Alk_subtilis_Tox-Test_'
-base_path <- "/Users/dmcbee/Library/CloudStorage/OneDrive-UniversityofTennessee/Dillon/1 Current Projects/1 Bacterial IPPDMAPP Paper/Growth Curves/Processed_Growth_Curves/"
+names1 <- 'ExcelFileThatContainsTheNameOfExpementalConditions.xlsx'
+new_folder_name <- 'NameofFolderToSaveDataTo'
+base_path <- "PathOfTheNewFolder"
 
 # Specify the number of experimental conditions
 num_conditions <- 7  # Update this number based on your experiment
