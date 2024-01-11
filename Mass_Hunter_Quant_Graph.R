@@ -5,7 +5,7 @@ library(openxlsx)
 library(patchwork)
 
 # Importing the dataset without headers and skipping the first row
-data <- read.xlsx("/Users/dmcbee/Library/CloudStorage/OneDrive-UniversityofTennessee/Dillon/1 Current Projects/1 Bacterial IPPDMAPP Paper/LCMS/MassHunter_Post_Code_Workup/DPM-F-63_Hex-Piv-Combined-Cleavage.xlsx")
+data <- read.xlsx("Name of export from 'Quantative_Analysis_Code_Masshunter.xlsx")
 
 # Add a new column for grouping
 data <- data %>%
@@ -77,8 +77,8 @@ combined_plot <- plot_facet1 / plot_facet2
 combined_plot
 
 # Define the file path for the PDF
-pdf_file_path <- "/Users/dmcbee/Library/CloudStorage/OneDrive-UniversityofTennessee/Dillon/1 Current Projects/1 Bacterial IPPDMAPP Paper/LCMS/MassHunter_Post_Code_Workup/"  # Replace with your desired file path
-csv_name <- "Cleavage_Graph.pdf"
+pdf_file_path <- ""  # Replace with your desired file path
+csv_name <- "NameOfGraph.pdf"
 # Export the combined plot as a PDF
 ggsave(paste0(pdf_file_path, csv_name), combined_plot, device = "pdf", width = 3.5, height = 3)
 
