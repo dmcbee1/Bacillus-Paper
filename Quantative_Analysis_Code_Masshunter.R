@@ -1,85 +1,133 @@
-# Load necessary libraries for data manipulation and visualization
-library(tidyr)
+# Load the dplyr package
 library(dplyr)
 library(ggplot2)
+library(openxlsx)
+# Importing the dataset without headers and skipping the first row
+data <- read.csv("/Users/dmcbee/Library/CloudStorage/OneDrive-UniversityofTennessee/Dillon/1 Current Projects/1 Bacterial IPPDMAPP Paper/LCMS/DPM_Subtilis_Piv_Cleavage.csv", header = FALSE, skip = 1, stringsAsFactors = FALSE)
 
-# Read the data from the CSV file
-data <- read.csv('', header=TRUE, skip=1) # Provide the path to the CSV file inside the quotes
+# Adjust the number of names based on the number of columns in your data frames
+new_column_names <- c("Notebook Page", "Bacteria", "Replicate", "Sidechain",
+                      "Type", "Time", "Date and Time", "mz", "rt","area", "height")
 
-# Filter out rows with missing pH values
-data <- data %>%
-  filter(!is.na(pH))
+#Export path for the csv File
+path <- '/Users/dmcbee/Library/CloudStorage/OneDrive-UniversityofTennessee/Dillon/1 Current Projects/1 Bacterial IPPDMAPP Paper/LCMS/MassHunter_Post_Code_Workup/'
+csv_name <- 'DPM-F-63_Piv-Cleavage.xlsx'
 
-# Split the dataset into separate data frames based on masses
-list_of_seperated_masses <- lapply(seq(4, ncol(data), by=4), function(start_col) {
-  end_col <- min(start_col + 4 - 1, ncol(data))
-  data[, c(1:3, start_col:end_col)]
-})
+# Setting the second row as headers
+colnames(data) <- as.character(unlist(data[1,]))
+data <- data[-1,]
 
-# Rename columns of each data frame for consistency
-new_names <- c("Sidechain","Group", 'Time', "mz", "RT", "Area", 'Height')
-list_of_renamed_masses <- lapply(list_of_seperated_masses, function(df) {
-  setNames(df, new_names)
-})
+# Checking the first few rows of the data to confirm the headers
+head(data)
 
-# Combine all separated data frames into one and filter for specified group
-combined_data <- bind_rows(list_of_renamed_masses, .id = "Comb")%>%
-  filter(Group == '') #Insert name of specificed group or remove this line of code
+# Removing the first two columns if they contain '!'
+data <- data[, -c(1,2)]
 
-# Plot for all masses with log scale for Peak Area
-ggplot(combined_data, aes(x=Time, y=log(Area), color=Sidechain)) +
-  geom_point(size=2) +
-  geom_smooth(method= 'lm',se = FALSE, aes(group = Sidechain),size=0.5) +
-  facet_wrap(~ mz) +
-  labs(x="Time (h)", 
-       y="log Peak Area", 
-       color="Sidechain") +
-  theme_classic() 
+# Checking the data after modifications
+head(data)
 
-# Plot for all masses without log scale for Peak Area
-ggplot(combined_data, aes(x=Time, y=Area, group=sidechain, color=sidechain)) +
+# Initialize an empty list to store data frames
+list_of_dfs <- list()
+
+# Calculate the total number of columns available for sets of four (excluding the first three columns)
+total_sets_columns = ncol(data) - 3
+
+# Calculate the number of complete sets of four columns
+num_sets <- floor(total_sets_columns / 4)
+
+# Loop through each set of four columns, starting from the fourth column
+for (i in 1:num_sets) {
+  # Calculate the column indices for the current set
+  cols <- (4:7) + (i - 1) * 4
+  
+  # Select the first three columns and the current set of four columns
+  new_df <- data[, c(1:3, cols)]
+  
+  # Add the new data frame to the list
+  list_of_dfs[[i]] <- new_df
+}
+
+
+
+# Number of expected splits (change this number based on your data)
+num_splits <- 6  # Example: 6 splits resulting in 6 new columns
+
+# Loop through each data frame in the list
+for (i in 1:length(list_of_dfs)) {
+  # Split the first column on underscore
+  split_data <- strsplit(as.character(list_of_dfs[[i]][,1]), "_")
+  
+  # Dynamically create new columns based on the number of splits
+  for (j in 1:num_splits) {
+    # Create a new column for each part of the split
+    # The ifelse statement ensures that the code does not break if the number of parts is less than expected
+    list_of_dfs[[i]][, paste("Part", j, sep = "")] <- sapply(split_data, function(x) ifelse(length(x) >= j, x[j], NA))
+  }
+  
+  # Create a vector of new column names
+  new_col_names <- paste("Part", 1:num_splits, sep = "")
+  
+  # Rearrange the columns to move the new columns to the front
+  list_of_dfs[[i]] <- list_of_dfs[[i]][, c(new_col_names, setdiff(names(list_of_dfs[[i]]), new_col_names))]
+}
+
+#Remove original dataset column
+# Loop through each data frame in the list
+for (i in 1:length(list_of_dfs)) {
+  # Remove the "Data File" column
+  list_of_dfs[[i]]$`Data File` <- NULL
+  # Remove the "Type" column
+  list_of_dfs[[i]]$`Type` <- NULL
+}
+
+# Now, each data frame in 'list_of_dfs' no longer has the "Data File" column
+
+
+# Loop through each data frame in the list
+for (i in 1:length(list_of_dfs)) {
+    colnames(list_of_dfs[[i]]) <- new_column_names
+}
+
+# Loop through each data frame in the list
+for (i in 1:length(list_of_dfs)) {
+  # Check if the "Time" column exists in the data frame
+  if ("Time" %in% names(list_of_dfs[[i]])) {
+    # Replace "h.d" with a decimal point in the "Time" column
+    list_of_dfs[[i]]$Time <- gsub("h\\.d", "", list_of_dfs[[i]]$Time)
+  } else {
+    warning(paste("Time column not found in data frame", i))
+  }
+}
+
+# Combine the list of data frames into one data frame
+combined_data <- bind_rows(list_of_dfs)
+
+# Convert the 'Time' column to numeric if it's not already
+combined_data$Time <- as.numeric(as.character(combined_data$Time))
+
+# Convert the 'area' column to numeric
+combined_data$area <- as.numeric(as.character(combined_data$area))
+
+# Convert the 'height' column to numeric
+combined_data$height <- as.numeric(as.character(combined_data$height))
+
+# Correct file path concatenation
+full_path <- paste0(path, csv_name)
+
+# Write the combined_data data frame to an Excel file
+write.xlsx(combined_data, file = full_path)
+
+
+ggplot(combined_data%>% filter(Type == 'Buffer'), aes(x = Time, y = area, group = mz, color = mz, shape = Type)) +
   geom_point() +
-  facet_wrap(~ mz) +
-  labs(title="Peak Area Over Time",
-       x="Time (h)", 
-       y="Peak Area", 
-       color="pH") +
+  geom_smooth(method = "loess", se = FALSE, span=100) + 
+  labs(title = "Comparison of m/z Values Over Time",
+       x = "Time",
+       y = "Area")+
+  scale_x_discrete(limits = c(0, 24, 48))+
+  theme(axis.text.x = element_text(size = 14),
+        axis.text.y = element_text(size = 14),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16),
+        legend.position = "none")+  # y-axis title
   theme_classic()
-
-# Function to generate log scale plots for specified m/z values
-log_plot <- function(data_frame, mz_values) {
-  filtered_data <- data_frame %>% filter(mz %in% mz_values)
-  plot <- ggplot(filtered_data, aes(x=Time, y=log(Area), group=pH, color=pH)) +
-    geom_point() +
-    geom_smooth(method = "loess", se = FALSE, aes(group = pH)) +
-    facet_wrap(~ mz) +
-    labs(title=paste("Peak Area Over Time for m/z Values:", paste(mz_values, collapse=", ")),
-         x="Time (h)", 
-         y="Peak Area", 
-         color="pH") +
-    theme_classic()
-  return(plot)
-}
-
-# Function to generate linear scale plots for specified m/z values
-linear_plot <- function(data_frame, mz_values) {
-  filtered_data <- data_frame %>% filter(mz %in% mz_values)
-  plot <- ggplot(filtered_data, aes(x=Time, y=Area, group=pH, color=pH)) +
-    geom_point() +
-    geom_smooth(method = "loess", se = FALSE, aes(group = pH)) +
-    facet_wrap(~ mz) +
-    labs(title=paste("Peak Area Over Time for m/z Values:", paste(mz_values, collapse=", ")),
-         x="Time (h)", 
-         y="Peak Area", 
-         color="pH") +
-    theme_classic()
-  return(plot)
-}
-
-# Get a list of unique m/z values in the data
-unique_mz_values <- unique(combined_data$mz)
-unique_mz_values
-
-# Generate a log scale plot for m/z value of 4
-log_plot(combined_data, 4)
-
