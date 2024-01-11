@@ -33,6 +33,10 @@ Data Visualization for Growth Curves <- This code handles data exported from the
   0:18:45	37	0.087	0.093	0.09	0.102	0.099	0.104
   0:28:45	37	0.087	0.088	0.089	0.106	0.098	0.101
 
+PNP_nitrophenol_Assay <- Processes an Excel data file containg absorbace values, processes   triplicate readings, and then generates growth curve plots with options for visualizing the  data in different ways.
+
+ Similar to the script 'Data Visualization for Growth Curves'
+ 
 Quantative_Analysis_Code_Masshunter <- This script is designed to process, analyze, and visualize mass spectrometry data exported from MassHunter Quantative Analysis
 
   Overview:
@@ -69,13 +73,3 @@ Quantative_Analysis_Code_Masshunter <- This script is designed to process, analy
   7.5	Piv	12	287.069				435.0979	4.029	22043	7916
   6.5	Piv	12	287.069				435.0979	4.022	7291	2402
   
-PNP_nitrophenol_Assay <- Processes an Excel data file containg absorbace values, processes   triplicate readings, and then generates growth curve plots with options for visualizing the  data in different ways.
-
-  Data Import:
-  Replace the placeholder '' in the read_excel function with the path to your Excel data      file.
-  Set the working directory where output files will be saved using the setwd function.
-  
-  Customization:
-  Update triplicate_names to represent the names/labels of your triplicates.
-  Choose a color palette by adjusting the palette_names variable.
-  If necessary, adjust the data extraction and visualization functions for specific needs.
