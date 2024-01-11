@@ -1,15 +1,23 @@
+#####Inital Data Workup and Libary Loading#####
+
 ##Load in Libararies
 library(readxl)
 library(tidyverse)
 library(broom)
 library(rstatix)
 library(ggpubr)
+library(openxlsx)
+library(viridis)
+
 ##Enter in working directory and Dataset location
-dataset1 <-''#Pathname to excel datasheet
+dataset1 <-'/Users/dmcbee/Library/CloudStorage/OneDrive-UniversityofTennessee/Dillon/1 Current Projects/1 Bacterial IPPDMAPP Paper/Growth Curves/DPM-L-1_Hex-Alk_subtilis_Tox-Test_12920203.xls'
 sheet_name <- 'Plate 1 - Sheet1'
-names1 <- ''#Excel file listing the names of each triplicate
-new_folder_name <- ''#Name of new folder to be created that will contain all figures
-base_path <- ""#Pathname where the new folder (above) will be created
+names1 <- '/Users/dmcbee/Library/CloudStorage/OneDrive-UniversityofTennessee/Dillon/1 Current Projects/1 Bacterial IPPDMAPP Paper/Growth Curves/Name_Template.xlsx'
+new_folder_name <- 'DPM-L-1_Hex-Alk_subtilis_Tox-Test_'
+base_path <- "/Users/dmcbee/Library/CloudStorage/OneDrive-UniversityofTennessee/Dillon/1 Current Projects/1 Bacterial IPPDMAPP Paper/Growth Curves/Processed_Growth_Curves/"
+
+# Specify the number of experimental conditions
+num_conditions <- 7  # Update this number based on your experiment
 
 # Create the folder name with the current date
 folder_name <- paste0(base_path, new_folder_name, Sys.Date())
@@ -32,6 +40,25 @@ treatment1 <- read_excel(dataset1,
   select(-'T° 600')%>%
   drop_na()
 
+# Calculate the number of columns to keep (3 columns per condition + 1 for the Time column)
+num_columns_to_keep <- num_conditions * 3 + 1
+
+# Select the necessary columns (Time column + the first 'num_columns_to_keep - 1' columns of data)
+treatment1 <- treatment1 %>%
+  select(1:num_columns_to_keep) %>%
+  drop_na()
+
+# Normalization function: Subtracts the first measurement from all values in a vector
+normalize_curve <- function(data_vector) {
+  normalized_data <- data_vector - data_vector[1]
+  return(pmax(normalized_data, 0))  # Replace negative values with 0
+}
+
+
+# Apply normalization to each growth curve column Assuming your growth curve data starts from the 2nd column
+for (i in 2:ncol(treatment1)) {
+  treatment1[[i]] <- normalize_curve(treatment1[[i]])
+}
 
 # Determine the number of groups (assuming first column is 'Time' and the data are in triplicates)
 num_groups <- (ncol(treatment1) - 1) / 3
@@ -93,10 +120,13 @@ long_df <- tidyr::pivot_longer(
   values_to = "value"
 )
 
+
 # Calculate central point (e.g., median) for each group at each time
 central_points <- long_df %>%
   group_by(group, time) %>%
   summarise(central_value = median(value))
+
+#####Plotting Growth Curves#####
 
 # Plot with facet_wrap, classic theme, smaller points, and smoothed line
 
@@ -116,6 +146,72 @@ ggplot(long_df, aes(x = time, y = value, color = group)) +
 ggsave(paste0("Growth_Curves_Facet_", new_folder_name, ".tiff"), width=10, height = 7)
 ggsave(paste0("Growth_Curves_Facet_", new_folder_name, ".pdf"), width=10, height = 7)
 
+# Create a subfolder for the graphs
+graphs_folder <- file.path(folder_name, "Growth_Curve_Graphs")
+if (!dir.exists(graphs_folder)) {
+  dir.create(graphs_folder)
+}
+
+# Loop through each entry in custom_labeller, create and save the plot
+for (group_name in names(custom_labeller)) {
+  condition_label <- custom_labeller[group_name]
+  
+  # Filter the data for the current group
+  condition_data <- filter(long_df, group == group_name)
+  
+  # Generate the plot for the current condition
+  plot <- ggplot(condition_data, aes(x = time, y = value)) +
+    geom_point(size = 1) +
+    geom_smooth(method = "gam", se = FALSE, size = 1) +  # Smoothing line
+    labs(title = paste("Growth Curve for", condition_label), x = "Time (h)", y = "OD 600 nm") +
+    theme_classic() +
+    scale_y_continuous(limits = c(0, 1)) +
+    theme(axis.text.x = element_text(size = 8, color = "black"),
+          axis.text.y = element_text(size = 8, color = "black"),
+          axis.title.x = element_text(size = 10, color = "black"),
+          axis.title.y = element_text(size = 10, color = "black"),
+          plot.title = element_text(size = 8, color = "black"),  # Set the title color to black
+          legend.position = "none")
+  # Save the plot in the graphs subfolder
+  ggsave(filename = paste0(graphs_folder, "/", condition_label, ".pdf"), plot, width = 3, height = 2.5)
+}
+
+#####Graph a Filtered Facet Graph
+# List of specific treatments to include
+include_treatments <- c("C4", "A1") 
+# Update this with the actual group names you want to include
+
+
+# Filter the dataframe to include only specified treatments
+long_df_filtered <- long_df %>% 
+  filter(group %in% include_treatments)
+
+# Plot with facet_wrap using the filtered dataframe
+ggplot(long_df_filtered, aes(x = time, y = value, color = group)) +
+  geom_point(size = 0.1)+
+  geom_smooth(data = central_points %>% filter(group %in% include_treatments), 
+              aes(y = central_value), method = "gam", se = FALSE, size = 0.5) +
+  labs(x = "Time (h)", y = "OD 600 nm", color = "Group") +
+  facet_grid(~ group, labeller = as_labeller(custom_labeller)) +
+  theme_classic() +
+  scale_y_continuous(limits = c(0, 1), breaks = c(0.0, 0.5, 1.0)) +
+  scale_x_continuous(limits = c(0, 10), breaks = c(0, 5, 10)) +
+  theme(
+    axis.text.x = element_text(size = 10, colour = "black"),
+    axis.text.y = element_text(size = 10, colour = "black"),
+    axis.title.x = element_text(size = 12, colour = "black"),
+    axis.title.y = element_text(size = 12, colour = "black"),
+    strip.text = element_text(size = 4, colour = "black", margin = margin(1, 1, 1, 1, "pt")),  # Adjust the size and color of facet labels
+    strip.background = element_blank(),
+    legend.position = "none",
+    plot.title = element_text(colour = "black"),
+    plot.subtitle = element_text(colour = "black"),
+    plot.caption = element_text(colour = "black")
+  )
+
+
+
+ggsave(paste0("Growth_Curves_Selected_5-1_blank-rescue_", new_folder_name, ".pdf"), width=3, height = 1.5)
 
 #####Direct comparsion to Vehicle####
 
@@ -212,13 +308,29 @@ ggplot(auc_summary, aes(x = group, y = perc_mean_auc)) +
     width = 0.3,
     position = position_dodge(width = 0.9)
   ) +
-  labs(x = "Group", y = "Area Under the Curve (% of A2)") +
-  scale_x_discrete(labels = custom_labeller) +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  labs(y = "Area Under the Curve (% of Control)", x = "") +  # Remove x-axis title
+  scale_x_discrete(labels = custom_labeller, expand=c(0.075, 0.05)) +
+  scale_y_continuous(expand=c(0, 0), limits = c(0, 125)) +
+  theme_classic() +  # Apply classic theme
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 3, color = "black"),
+        axis.text.y = element_text(size = 8, color = "black"),
+        axis.title.x = element_blank(),  # Remove x-axis title
+        axis.title.y = element_text(size = 8, color = "black"),
+        plot.title = element_text(size = 8, color = "black"),
+        legend.position = "none")
 
-ggsave(paste0("AUC_as-percent-of-Veh_", new_folder_name, ".tiff"), width=10, height = 7)
-ggsave(paste0("AUC_as-percent-of-Veh_", new_folder_name, ".pdf"), width=10, height = 7)
+
+ggsave(paste0("AUC_as-percent-of-Veh_", new_folder_name, ".png"), width=3, height = 3)
+ggsave(paste0("AUC_as-percent-of-Veh_", new_folder_name, ".pdf"), width=3, height = 3)
+
+# Replace group names in auc_summary with descriptive names
+auc_summary$group <- new_labels[auc_summary$group]
+# Define the file path for the Excel file
+excel_file_path <- paste0("AUC_Summary_", new_folder_name, ".xlsx")
+
+# Export the auc_summary data frame to an Excel file
+write.xlsx(auc_summary, file = excel_file_path)
+
 
 ####Anova to look for changes between groups#####
 # ANOVA
@@ -259,8 +371,6 @@ ggplot(comparisons, aes(x=reorder(group_comparison, order_key), y=diff)) +
 # Save the plot
 ggsave(paste0("Tukey_postHoc_", new_folder_name, ".tiff"), width=7, height = 10)
 ggsave(paste0("Tukey_postHoc_", new_folder_name, ".pdf"), width=7, height = 10)
-
-library(openxlsx)
 
 # Convert TukeyHSD object to dataframe
 tukey_df <- data.frame(tukey_result$group)  # Assuming 'group' is the name of your factor variable in the anova.
