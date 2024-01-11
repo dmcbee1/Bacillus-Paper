@@ -1,4 +1,4 @@
-# Bacillus Paper
+# Exogenous cellular delivery of isopentenyl pyrophosphate and dimethylallyl pyrophosphate to Bacillus subtilis
  
 Bradford_Assay_Code <- Generates standard curve and determines protein concentration of unknowns. Inputs must be added directly to code.
 
@@ -26,50 +26,41 @@ Data Visualization for Growth Curves <- This code handles data exported from the
   Results are exported to an Excel sheet.
   Additionally, a graphical representation of the ANOVA results is provided.
 
-  Data must be in the following format in excel to work in the code (5 lines of excel       document shown):
+Data must be in the following format in excel to work in the code (5 lines of excel document shown):
   600							
-  Time	T° 600	A1	A2	A3	A4	A5	A6.... and so on for as many triplicates as avaliable
+  Time	T° 600	A1	A2	A3	A4	A5	A6.... and so on for as many triplicates as available
   0:08:45	37	0.087	0.09	0.089	0.102	0.097	0.103
   0:18:45	37	0.087	0.093	0.09	0.102	0.099	0.104
   0:28:45	37	0.087	0.088	0.089	0.106	0.098	0.101
 
-PNP_nitrophenol_Assay <- Processes an Excel data file containg absorbace values, processes   triplicate readings, and then generates growth curve plots with options for visualizing the  data in different ways.
+PNP_nitrophenol_Assay <- Processes an Excel data file containing absorbance values, processes   triplicate readings, and then generates growth curve plots with options for visualizing the  data in different ways.
 
- Similar to the script 'Data Visualization for Growth Curves'
+Similar to the script 'Data Visualization for Growth Curves'
  
-Quantative_Analysis_Code_Masshunter <- This script is designed to process, analyze, and visualize mass spectrometry data exported from MassHunter Quantative Analysis
+Quant_Analysis_Code_Masshunter-Data-Rearrangement <- This script is designed to process, analyze, and visualize mass spectrometry data exported from MassHunter Quantitative Analysis. *Note this code is dependent on how the mass spectrometry runs are saved and will need to be adjusted based on your specific needs.
 
-  Overview:
-  Loading Libraries:
-  The script utilizes the tidyr, dplyr, and ggplot2 libraries for data manipulation and       visualization.
-  
-  Data Import:
-  The script reads data from a CSV file. Users must provide the path to the CSV file in the   code.
-  
-  Data Cleaning:
-  Rows with missing pH values are filtered out to ensure data consistency.
-  
-  Data Organization:
-  The dataset is split into separate data frames based on masses.
-  Columns of each data frame are renamed for consistency.
-  All separated data frames are then combined into one unified dataset.
+Data Import: The script starts by importing data from a CSV file. Modify "PathNameOfCSVhere.csv" to the path of your CSV file. The data is imported without headers   and skips the first row.
 
-  Visualization:
-  Two types of plots are generated:
-  A plot with a logarithmic scale for Peak Area.
-  A plot without a logarithmic scale for Peak Area.
+Column Renaming: The script sets new column names. Adjust new_column_names as per your dataset's requirements.
 
-  Custom Functions:
-  log_plot: Generates plots on a logarithmic scale for specified m/z values.
-  linear_plot: Generates plots on a linear scale for specified m/z values.
+Data Cleaning: It includes removing unwanted columns and setting custom headers.
 
-  Unique m/z Values:
-  A list of unique m/z values present in the data is created.
-  
-  Data must be in the following format in excel to work in the code (5 lines of excel         document shown):
-  (FIRST ROW IS INGORED, second row and onward shown below) 		
-  pH	Type	Time	Product Ion	RT	Area	Height	Product Ion	RT	Area	Height...
-  6.5	Piv	12	287.069				435.0979	4.029	6798	2444
-  7.5	Piv	12	287.069				435.0979	4.029	22043	7916
-  6.5	Piv	12	287.069				435.0979	4.022	7291	2402
-  
+Data Splitting and Rearranging: The script splits data based on underscores in specific columns, rearranges the data, and removes unnecessary columns.
+
+Data Combination and Conversion: All the split and cleaned data frames are combined into one. Specific columns ('Time', 'area', and 'height') are converted to       numeric types.
+
+Export: The final combined data frame is exported as an Excel file. Set the path and csv_name variables to your desired output directory and file name.
+
+Mass_Hunter_Quant_Graph <- This script will take the output from Quant_Analysis_Code_Masshunter-Data-Rearrangement and provide comparative graphs.
+
+Data Import: Import data from an Excel file. Replace "Name of export from 'Quantative_Analysis_Code_Masshunter.xlsx" with your file's name.
+
+Data Grouping and Filtering: The script groups data based on m/z values into categories 'A', 'B', and 'Other'. It then filters data for specific types ('Lys', 'Buffer', etc.) and sidechains ('Hex', 'Piv').
+
+Data Summarization: Calculates mean and standard error (SE) of the 'area' for each 'Time' and 'Group' combination.
+
+Visualization Preparation: Prepares individual plots for different data subsets (e.g., lysate_only, buffer_only) with specific aesthetic settings.
+
+Plot Combination: Uses patchwork to combine individual plots into a single figure.
+
+Exporting the Combined Plot: The script exports the combined plot as a PDF. Set pdf_file_path and csv_name to your desired output directory and file name.
