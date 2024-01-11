@@ -116,18 +116,3 @@ full_path <- paste0(path, csv_name)
 
 # Write the combined_data data frame to an Excel file
 write.xlsx(combined_data, file = full_path)
-
-
-ggplot(combined_data%>% filter(Type == 'Buffer'), aes(x = Time, y = area, group = mz, color = mz, shape = Type)) +
-  geom_point() +
-  geom_smooth(method = "loess", se = FALSE, span=100) + 
-  labs(title = "Comparison of m/z Values Over Time",
-       x = "Time",
-       y = "Area")+
-  scale_x_discrete(limits = c(0, 24, 48))+
-  theme(axis.text.x = element_text(size = 14),
-        axis.text.y = element_text(size = 14),
-        axis.title.x = element_text(size = 16),
-        axis.title.y = element_text(size = 16),
-        legend.position = "none")+  # y-axis title
-  theme_classic()
