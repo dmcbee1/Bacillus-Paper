@@ -126,7 +126,7 @@ combined_df <- dplyr::bind_rows(result_list)
 
 # Reshape to long format
 long_df <- tidyr::pivot_longer(
-  filtered_df,
+  combined_df,
   c(w1, w2, w3),
   names_to = "replicate",
   values_to = "value")
